@@ -37,16 +37,16 @@ Important – ces ‘instructions’ ne sont ni limitantes, ni exhaustives. Si t
 + Créer un outil qui permette de générer et d’alimenter une base de données de tweets (en gardant le maximum d’informations sur chaque tweet, i.e. l’auteur, le nombre de likes, le nombre de commentaires, hashtags associés etc…).
 + Cet outil/script prendrait en entrée un hashtag et irait requêter (grâce à L’API de Twitter) tous les tweets concernés par ce hashtag sur une période de 7 jours maximum (contrainte imposée par Twitter) afin d’alimenter une base. 
 
-2/ Créer une application permettant de requêter et de visualiser les caractéristiques de publication associées à l’input# 
--	Inputs : L’utilisateur de l’application choisirait 
-1.	un hashtag 
-2.	une plage de date
-+ Outputs : Extraction et visualisation des résultats -  
-o Sujets dominants – identifier les sous-sujets dominants associés à l’input#. (bonus : analyser le contenu/texte (NLP) pour identifier des sous-thèmes plus précis, avec potentiellement une analyse de sentiment et style de rhétorique)
-o Statistiques de base : Nombre de posts , de likes, de retweets … associés à l’input# 
-o Influencers (comptes)  - Identifier les influencers principaux postant avec ce input# (ceux avec les posts les plus retweetés, les plus likés, le plus grand nombre de followers, nombre de publications, lange…)
-o Médias influents - identifier les médias les plus influents dans l’activité lié à l’input#. Analyser les liens postés provenant de sites de médias.
-o Visualisation des 100 tops tweets associés à l’input# afin que MIC puisse en faire une lecture qualitative – identifier si oui ou non il s’agit d’un sujet clivant. 
+2/ Créer une application permettant de requêter et de visualiser les caractéristiques de publication associées à l’input (#)
+
+Inputs : L’utilisateur de l’application choisirait un hashtag  et une plage de date
+
+Outputs : Extraction et visualisation des résultats :
++ Sujets dominants – identifier les sous-sujets dominants associés à l’input#. (bonus : analyser le contenu/texte (NLP) pour identifier des sous-thèmes plus précis, avec potentiellement une analyse de sentiment et style de rhétorique)
++ Statistiques de base : Nombre de posts , de likes, de retweets … associés à l’input# 
++ Influencers (comptes)  - Identifier les influencers principaux postant avec ce input# (ceux avec les posts les plus retweetés, les plus likés, le plus grand nombre de followers, nombre de publications, lange…)
++ Médias influents - identifier les médias les plus influents dans l’activité lié à l’input#. Analyser les liens postés provenant de sites de médias.
++ Visualisation des 100 tops tweets associés à l’input# afin que MIC puisse en faire une lecture qualitative – identifier si oui ou non il s’agit d’un sujet clivant. 
 
 ##### #5 | Ressources à disposition pour résoudre le défi
 Pour vous approprier le projet, vous aurez accès aux ressources suivantes :
