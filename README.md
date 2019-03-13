@@ -12,6 +12,8 @@ Cette section contiendra les travaux effectué par l'équipe à la fin de la Nui
 + More in Common mène des enquêtes d’opinion inédites dont l’objectif est de cartographier l’opinion des français sur l’ensemble des sujets qui divisent notre société aujourd’hui. Par leur ampleur et leur méthodologie [issus de la recherche en psychologie sociale], ces études sont désormais reconnues comme l’un des outils les plus innovants pour comprendre l’opinion publique et dépasser la polarisation croissante de nos sociétés. 
 + En effet, ces enquêtes n’ont pas simplement pour vocation de dresser un état des lieux : elles sont au service d’une stratégie. Elles ouvrent des voies pour rassembler, convaincre et mobiliser la société civile et tous les sans-voix, en faisant émerger un imaginaire partagé. 
 
+En savoir plus : [moreincommon.com](https://www.moreincommon.com/).
+
 ##### #2 | Problématique
 + Afin de bâtir une société plus unifiée, More in Common doit mettre fin aux divisions idéologiques et politiques qui minent la société française. Pour ce faire, elle doit comprendre l’origine de ces divisions : quels sujets divisent et pourquoi, et qui sont les instigateurs principaux de ces divisions. 
 + La polarisation apparente de notre société est, en effet, le jeu d’une minorité de personnes, les extrêmes, ou les ‘wings’. Ces extrêmes font beaucoup de ‘bruit’, notamment via les médias, et entretiennent des discours polarisants et une confrontation incessante, ce qui donne l’impression d’une société divisée dans son ensemble.
