@@ -70,3 +70,13 @@ Il s’agit d’éléments que nous souhaitons incarner collectivement avec vous
 + Lucie : membre de More in Common et porteuse de projets.
 + Margot : bénévole Latitudes, et en charge de la préparation du défi avec More in Common.
 + Yannick : co-fondateur de Latitudes.
+
+##### #8 | Setup du back-end
+
+```
+cd back
+pip install pipenv
+pipenv install
+pipenv shell
+FLASK_ENV=development FLASK_APP=app.py flask run --host=0.0.0.0
+```
