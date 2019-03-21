@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -356,11 +357,113 @@ df_tweets['created_at'].values;
 #
 
 import spacy
+
+
+# +
+from tqdm import tqdm
+import string
+import matplotlib.pyplot as plt
+from sklearn.decomposition import NMF, LatentDirichletAllocation, TruncatedSVD
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.manifold import TSNE
+import concurrent.futures
+import time
+import pyLDAvis.sklearn
+from pylab import bone, pcolor, colorbar, plot, show, rcParams, savefig
+import warnings
+warnings.filterwarnings('ignore')
+
+# %matplotlib inline
+import os
+
+# Plotly based imports for visualization
+from plotly import tools
+import plotly.plotly as py
+from plotly.offline import init_notebook_mode, iplot
+init_notebook_mode(connected=True)
+import plotly.graph_objs as go
+import plotly.figure_factory as ff
+
+import spacy
+from spacy.lang.fr.stop_words import STOP_WORDS
+from spacy.lang.fr import French
 import fr_core_news_sm
 nlp = fr_core_news_sm.load()
+# #!python -m spacy download fr_core_web_lg
+# -
 
-doc = nlp("Ceci est une phrase")
+doc = nlp(df_tweets["text"][3])
+spacy.displacy.render(doc, style='ent',jupyter=True)
 
-doc
+punctuations = string.punctuation
+stopwords = list(STOP_WORDS)
+
+review = str(" ".join([i.lemma_ for i in doc]))
+
+doc = nlp(review)
+spacy.displacy.render(doc, style='ent',jupyter=True)
+
+for i in nlp(review):
+    print(i,"=>",i.pos_)
+
+parser = French()
+def spacy_tokenizer(sentence):
+    mytokens = parser(sentence)
+    mytokens = [ word.lemma_.lower().strip() if word.lemma_ != "-PRON-" else word.lower_ for word in mytokens ]
+    mytokens = [ word for word in mytokens if word not in stopwords and word not in punctuations ]
+    mytokens = " ".join([i for i in mytokens])
+    return mytokens
+
+
+tqdm.pandas()
+df_tweets["processed_text"] = df_tweets["text"].progress_apply(spacy_tokenizer)
+
+df_tweets.head(10)["processed_text"];
+
+vectorizer = CountVectorizer(min_df=5, max_df=0.9, stop_words=stopwords, lowercase=True, token_pattern='[a-zA-Z\-][a-zA-Z\-]{2,}')
+data_vectorized = vectorizer.fit_transform(df_tweets["processed_text"])
+
+##How many topics do you want to find??
+NUM_TOPICS = 6
+
+lda = LatentDirichletAllocation(n_components=NUM_TOPICS, max_iter=10, learning_method='online',verbose=True)
+data_lda = lda.fit_transform(data_vectorized)
+
+# Non-Negative Matrix Factorization Model
+nmf = NMF(n_components=NUM_TOPICS)
+data_nmf = nmf.fit_transform(data_vectorized) 
+
+# Latent Semantic Indexing Model using Truncated SVD
+lsi = TruncatedSVD(n_components=NUM_TOPICS)
+data_lsi = lsi.fit_transform(data_vectorized)
+
+
+# Functions for printing keywords for each topic
+def selected_topics(model, vectorizer, top_n=10):
+    for idx, topic in enumerate(model.components_):
+        print("Topic %d:" % (idx))
+        print([(vectorizer.get_feature_names()[i], topic[i])
+                        for i in topic.argsort()[:-top_n - 1:-1]]) 
+
+
+print("LDA Model:")
+selected_topics(lda, vectorizer)
+
+# Keywords for topics clustered by Latent Semantic Indexing
+print("NMF Model:")
+selected_topics(nmf, vectorizer)
+
+# Keywords for topics clustered by Non-Negative Matrix Factorization
+print("LSI Model:")
+selected_topics(lsi, vectorizer)
+
+# Transforming an individual sentence
+text = spacy_tokenizer("Les gilets jaune tous unis contre Macron. Tous dans la rue jusqu'à la démission")
+x = lda.transform(vectorizer.transform([text]))[0]
+print(x)
+
+pyLDAvis.enable_notebook()
+dash = pyLDAvis.sklearn.prepare(lda, data_vectorized, vectorizer, mds='tsne')
+dash
 
 
