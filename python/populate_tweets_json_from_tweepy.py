@@ -15,7 +15,6 @@
 # ---
 
 import tweepy
-import re
 
 # +
 import urllib3
@@ -26,10 +25,15 @@ import json
 from pandas.io.json import json_normalize
 
 import pandas as pd
+pd.options.display.max_colwidth = 1000
 import numpy as np
+
+import nbimporter
+import utility_functions as uf
 # -
 
-pd.options.display.max_colwidth = 1000
+from importlib import reload
+reload(uf)
 
 
 ####input your credentials here
@@ -39,108 +43,93 @@ access_token = '602145669-jHmxtsl0wSZDFeZxi81GcTzYrD87dRBhF78ip0qo'
 access_token_secret = 'YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D'
 
 #define inputs here
-input_hashtag = "giletjaune"
+input_hashtag = "#giletjaune"
 language = "fr"
 since_date = "2018-03-07"
 #n_tweets = 1
 
-# +
-####request to Twitter API
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify = True)
+uf.db_init()
+rt = 0
 
-inc = 0
-for tweet in tweepy.Cursor(api.search,q="#"+input_hashtag,#count=n_tweets,    #this is a search by hashtags
-                           lang=language,
-                           since=since_date, tweet_mode='extended').items():
-    inc = +1
-    with open('tweets/tweet'+str(tweet.id)+'.json', 'w', encoding='utf8') as file:
-        ####you need to create a 'tweets' folder
-        tweet_json = tweet._json
-        json.dump(tweet_json, file)
-        
-# -
 
-def is_a_retweet(tweet):
-    #### returns a true if the tweet is a retweet, false if it's an original tweets 
-    return tweet.get('retweeted_status',None) != None
-
+from twarc import Twarc
+t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret,tweet_mode= 'extended')
+for tweet in t.search(input_hashtag, lang=language):
+    with open('tweets_twarc/tweet'+str(tweet['id'])+'.json', 'w', encoding='utf8') as file:
+        ####you need to create a 'tweets_twarc' folder
+       
+        json.dump(tweet, file)
+    
 
 # +
-#initialisation of databases, df files
+## this cell will be deprecated when switching to utility function
+rt = 0
+#databases initialisations
+def db_init():
+    global df_users
+    global df_tweets
+    global df_hashtags
+    global df_users_mentions
+    global df_retweet_users
+    
+    #initialisation of databases, df files
 
-d_users = {'user_id': [],
-           'name':[],
-           'screen_name':[],
-           'location':[],
-           'description':[],
-           'url':[],
-           'followers_count':[],
-           'friends_count':[],
-           'listed_count':[],
-           'created_at':[],
-           'favourites_count':[],
-           'geo_enabled':[],
-           'verified':[],
-           'statuses_count':[],
-           'lang':[],
-           'contributors_enabled':[]
-          }
-df_users = pd.DataFrame(data=d_users)
+    d_users = {'user_id': [],
+               'name':[],
+               'screen_name':[],
+               'location':[],
+               'description':[],
+               'url':[],
+               'followers_count':[],
+               'friends_count':[],
+               'listed_count':[],
+               'created_at':[],
+               'favourites_count':[],
+               'geo_enabled':[],
+               'verified':[],
+               'statuses_count':[],
+               'lang':[],
+               'contributors_enabled':[]
+              }
+    df_users = pd.DataFrame(data=d_users)
 
-d_tweets = {'tweet_id': [],
-            'created_at': [],
-            'text': [],
-            'truncated': [],
-            'source': [],
-            'in_reply_to_status_id': [],
-            'in_reply_to_user_id': [],
-            'in_reply_to_screen_name': [],
-            'user_id': [],
-            'geo': [],
-            'coordinates': [],
-            'place': [],
-            'contributors': [],
-            'is_quote_status': [],
-            'retweet_count': [],
-            'favorite_count': [],
-            'favorited': [],
-            'retweeted': [],
-            'lang': []         
-           }
-df_tweets = pd.DataFrame(data=d_tweets)
-
-
-d_hashtags={'hashtag': [], 'tweet_id': []}
-df_hashtags = pd.DataFrame(data=d_hashtags)
-
-d_users_mentions = {'tweet_id':[], 'user_id': [], 'screen_name':[], 'name':[]}
-df_users_mentions = pd.DataFrame(data=d_users_mentions)
-
-d_retweet_users = {'user_id':[], 'original_user_id':[], 'original_tweet_id':[]}
-df_retweet_users= pd.DataFrame(data=d_retweet_users)
-
-d_influent_users = {'user_id':[], 
-                    'name':[],
-                    'retweet_count':[],
-                    'favorite_count':[], 
-                    'description':[] 
-                   }
-
-df_influent_users = pd.DataFrame(data=d_influent_users)
+    d_tweets = {'tweet_id': [],
+                'created_at': [],
+                'text': [],
+                'truncated': [],
+                'source': [],
+                'in_reply_to_status_id': [],
+                'in_reply_to_user_id': [],
+                'in_reply_to_screen_name': [],
+                'user_id': [],
+                'geo': [],
+                'coordinates': [],
+                'place': [],
+                'contributors': [],
+                'is_quote_status': [],
+                'retweet_count': [],
+                'favorite_count': [],
+                'favorited': [],
+                'retweeted': [],
+                'lang': []         
+               }
+    df_tweets = pd.DataFrame(data=d_tweets)
 
 
+    d_hashtags={'hashtag': [], 'tweet_id': []}
+    df_hashtags = pd.DataFrame(data=d_hashtags)
 
-# +
+    d_users_mentions = {'tweet_id':[], 'user_id': [], 'screen_name':[], 'name':[]}
+    df_users_mentions = pd.DataFrame(data=d_users_mentions)
+
+    d_retweet_users = {'user_id':[], 'original_user_id':[], 'original_tweet_id':[]}
+    df_retweet_users= pd.DataFrame(data=d_retweet_users)
+
+
 # store all hashtags related to a tweet
 def store_hashtag(tweet):
-    global input_hashtag
     global df_hashtags
-    if tweet['entities']['hashtags']==[]:
-        df_hashtags = df_hashtags.append({'hashtag': input_hashtag ,'tweet_id':tweet['id_str']}, ignore_index=True)
-    else:
-        for raw_hash in tweet['entities']['hashtags']:
+    for raw_hash in tweet['entities']['hashtags']:
             df_hashtags = df_hashtags.append({'hashtag': raw_hash['text'] ,'tweet_id':tweet['id_str']}, ignore_index=True)
 
 #store all user mentions contained in the tweet
@@ -181,7 +170,7 @@ def store_user(tweet):
 #store the content of the tweet
 def store_tweet(tweet):
     global df_tweets
-    text = re.sub(r"http\S+", "", tweet['full_text'])
+    text = re.sub(r"http\S+", "", tweet['full_text']) ## Removes URLs from full text
     df_tweets = df_tweets.append({'tweet_id':  tweet['id_str'],
             'created_at': tweet['created_at'],
             'text': text,
@@ -223,38 +212,62 @@ def store_influent_users(n):
                             'description':[] 
                            }
         
+        
+def is_a_retweet(tweet):
+    #### returns a true if the tweet is a retweet, false if it's an original tweets 
+    global rt
+    rt += 1
+    return tweet.get('retweeted_status',None) != None
 
+def process_json_tweet(tweet):
+    tweet = json.load(tweet)
+    
+    if is_a_retweet(tweet):
+        store_retweet_user(tweet)
+        
+    else:  #store tweets only when they are original tweets
+        store_tweet(tweet)
+        store_user(tweet)
+        store_hashtag(tweet)
+        store_user_mentions(tweet)
+    
+
+
+# -
+
+db_init()
 
 # +
 #### loading the databases
-
+t= 0
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning) #https://stackoverflow.com/questions/40659212/futurewarning-elementwise-comparison-failed-returning-scalar-but-in-the-futur
 import os
 
-path_to_json = 'tweets/'
+path_to_json = 'tweets_twarc/'
 json_files = [pos_json for pos_json in os.listdir(path_to_json) if pos_json.endswith('.json')]
 for json_file in json_files:
     
     with open(path_to_json+json_file) as tweet:
-        tweet = json.load(tweet)
-        if is_a_retweet(tweet):
-            store_retweet_user(tweet)
-        else:  #store tweets only when they are original tweets
-            store_tweet(tweet)
-            store_user(tweet)
-            store_hashtag(tweet)
-            store_user_mentions(tweet)
+        t+=1
+        process_json_tweet(tweet)
         
         
         
 # -
 
 df_tweets.head(10);
+print(rt)
+print(t)
 
 
 #tweet example
 df_tweets['text'].iloc[0]
+
+d = pd.to_datetime(df_tweets['created_at'])
+print(d.min())
+print(d.max())
+print(len(df_tweets.index)) 
 
 #primary keys are ok if both return false
 print(df_tweets.duplicated('tweet_id').any())
@@ -349,7 +362,7 @@ def get_related_hashtags_by_username(name):
 
 # -
 
-get_tweet_by_username('Brevesdepresse')
+get_tweet_by_username('GiletsJaunesFr')
 
 
 #output 
@@ -359,7 +372,7 @@ for name in top_influencers_rt_names:
     df_rel.to_csv('top_hashtags_by_'+name+'.csv',index=False)
     df_rel=[]
 
-get_related_hashtags_by_username('Brevesdepresse')
+get_related_hashtags_by_username('GiletsJaunesFr')
 
 
 # # NLP
@@ -474,5 +487,9 @@ print(x)
 pyLDAvis.enable_notebook()
 dash = pyLDAvis.sklearn.prepare(lda, data_vectorized, vectorizer, mds='tsne')
 dash
+
+
+
+db_init()
 
 
