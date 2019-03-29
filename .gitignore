@@ -1,3 +1,10 @@
 fig.svg
 temp-plot.html
 plot.html
+
+#Vagrant
+.vagrant/
+config_tcat_completed.txt
+
+#Mac
+.DS_Store
