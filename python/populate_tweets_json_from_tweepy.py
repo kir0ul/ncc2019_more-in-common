@@ -38,10 +38,11 @@ consumer_secret = '5ckLaCgfTdfmWM7qS9f2w05pDCSIWRCTHlm7RLnKwK9tCWIz9P'
 access_token = '602145669-jHmxtsl0wSZDFeZxi81GcTzYrD87dRBhF78ip0qo'
 access_token_secret = 'YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D'
 
+#define inputs here
 input_hashtag = "giletjaune"
-n_tweets = 1
 language = "fr"
 since_date = "2018-03-07"
+#n_tweets = 1
 
 # +
 ####request to Twitter API
@@ -50,20 +51,19 @@ auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify = True)
 
 inc = 0
-for tweet in tweepy.Cursor(api.search,q="#"+input_hashtag,#count=n_tweets,
+for tweet in tweepy.Cursor(api.search,q="#"+input_hashtag,#count=n_tweets,    #this is a search by hashtags
                            lang=language,
                            since=since_date, tweet_mode='extended').items():
     inc = +1
     with open('tweets/tweet'+str(tweet.id)+'.json', 'w', encoding='utf8') as file:
         ####you need to create a 'tweets' folder
-        
         tweet_json = tweet._json
         json.dump(tweet_json, file)
         
 # -
 
 def is_a_retweet(tweet):
-    #### returns a boolean 
+    #### returns a true if the tweet is a retweet, false if it's an original tweets 
     return tweet.get('retweeted_status',None) != None
 
 
@@ -133,6 +133,7 @@ df_influent_users = pd.DataFrame(data=d_influent_users)
 
 
 # +
+# store all hashtags related to a tweet
 def store_hashtag(tweet):
     global input_hashtag
     global df_hashtags
@@ -142,6 +143,7 @@ def store_hashtag(tweet):
         for raw_hash in tweet['entities']['hashtags']:
             df_hashtags = df_hashtags.append({'hashtag': raw_hash['text'] ,'tweet_id':tweet['id_str']}, ignore_index=True)
 
+#store all user mentions contained in the tweet
 def store_user_mentions(tweet):
     global df_users_mentions
     tweet_id = tweet['id_str']
@@ -151,7 +153,8 @@ def store_user_mentions(tweet):
         user_id = raw_mention['id_str']
         df_users_mentions = df_users_mentions.append({'tweet_id':tweet_id, 'user_id': user_id, 'screen_name':screen_name, 'name':name},ignore_index=True)
 
-def store_users(tweet):
+#store the author of the tweet        
+def store_user(tweet):
     global df_users
     user = tweet['user']
     if user['id_str'] not in df_users['user_id'].values:
@@ -175,6 +178,7 @@ def store_users(tweet):
                  }
         df_users = df_users.append(d_user,ignore_index=True)
 
+#store the content of the tweet
 def store_tweet(tweet):
     global df_tweets
     text = re.sub(r"http\S+", "", tweet['full_text'])
@@ -197,14 +201,17 @@ def store_tweet(tweet):
             'favorited': tweet['favorited'],
             'retweeted': tweet['retweeted'],
             'lang': tweet['lang'] },ignore_index=True)
-        
+
+#called when the tweet is a retweet: store the original author of the tweet as well as the user who retweeted it,
+# and the original id of the tweet
 def store_retweet_user(tweet):
     global df_retweet_users
     if is_a_retweet(tweet):
         df_retweet_users = df_retweet_users.append({'user_id':tweet['user']['id_str'],
                                                     'original_user_id':tweet['retweeted_status']['user']['id_str'],
                                                     'original_tweet_id':tweet['retweeted_status']['id_str']}, ignore_index=True)
-        
+##Never used
+##T0D0: proper encapsulation
 def store_influent_users(n):
     #n is the number of influent users return
     df_favorite_count = df_tweets.groupby(['user_id'])['favorite_count'].agg('sum').sort_values(ascending=False).head()
@@ -219,22 +226,23 @@ def store_influent_users(n):
 
 
 # +
-#### creation of the databases
+#### loading the databases
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning) #https://stackoverflow.com/questions/40659212/futurewarning-elementwise-comparison-failed-returning-scalar-but-in-the-futur
 import os
+
 path_to_json = 'tweets/'
 json_files = [pos_json for pos_json in os.listdir(path_to_json) if pos_json.endswith('.json')]
 for json_file in json_files:
     
-    with open("tweets/"+json_file) as tweet:
+    with open(path_to_json+json_file) as tweet:
         tweet = json.load(tweet)
         if is_a_retweet(tweet):
             store_retweet_user(tweet)
-        else:
+        else:  #store tweets only when they are original tweets
             store_tweet(tweet)
-            store_users(tweet)
+            store_user(tweet)
             store_hashtag(tweet)
             store_user_mentions(tweet)
         
@@ -245,9 +253,10 @@ for json_file in json_files:
 df_tweets.head(10);
 
 
+#tweet example
 df_tweets['text'].iloc[0]
 
-#primary keys are ok?
+#primary keys are ok if both return false
 print(df_tweets.duplicated('tweet_id').any())
 print(df_users.duplicated('user_id').any())
 
@@ -279,8 +288,8 @@ df_most_favorited_users_with_info.head(15);
 df_most_retweeted_users_with_info.reset_index()
 df_most_favorited_users_with_info.reset_index();
 
-print(df_most_retweeted_users_with_info['name'])
-print(df_most_favorited_users_with_info['name'])
+print(df_most_retweeted_users_with_info['screen_name'])
+print(df_most_favorited_users_with_info['screen_name'])
 
 df_tweets_by_user = df_tweets.groupby(['user_id']).size().to_frame().reset_index()
 df_most_favorited_users_with_info = df_most_favorited_users_with_info.join(df_tweets_by_user.set_index('user_id')).drop_duplicates().sort_values('favorite_count',ascending=False)
@@ -316,7 +325,7 @@ df_tweets_hashtags = df_hashtags.set_index('tweet_id').join(df_tweets.set_index(
 df_tw_hash_user = df_tweets_hashtags.set_index('user_id').join(df_users.drop(columns=['created_at', 'lang']).set_index('user_id'))
 
 #df_aggretated = df_tw_hash_user.groupby(['user_id','hashtag']).size().reset_index()
-df_aggretated = df_tw_hash_user.groupby(['name','hashtag']).size().reset_index()
+df_aggretated = df_tw_hash_user.groupby(['screen_name','hashtag']).size().reset_index()
 
 df_aggretated.columns = ["Name", "#", "Used"]
 df_aggretated;
@@ -329,7 +338,7 @@ def get_tweet_by_userid(user_id):
 
 def get_tweet_by_username(name):
     df_tweets_user_info = df_tweets.set_index('user_id').join(df_users.drop(columns=['created_at', 'lang']).set_index('user_id'))
-    df_tweets_user_info = df_tweets_user_info[df_tweets_user_info['name'] == 'LesGiletsJaunes.fr']
+    df_tweets_user_info = df_tweets_user_info[df_tweets_user_info['screen_name'] == name]
     df_tweets_user_info = df_tweets_user_info[['tweet_id','text','created_at', 'favorite_count', 'retweet_count']]
     return df_tweets_user_info
 
@@ -340,7 +349,7 @@ def get_related_hashtags_by_username(name):
 
 # -
 
-get_tweet_by_username('LesGiletsJaunes.fr')
+get_tweet_by_username('Brevesdepresse')
 
 
 #output 
@@ -350,7 +359,7 @@ for name in top_influencers_rt_names:
     df_rel.to_csv('top_hashtags_by_'+name+'.csv',index=False)
     df_rel=[]
 
-df_tweets['created_at'].values;
+get_related_hashtags_by_username('Brevesdepresse')
 
 
 # # NLP
