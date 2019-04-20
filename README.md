@@ -4,9 +4,6 @@
 + *Phase d'avancement actuelle :* conception.
 + *Compétences associés :* data science, scrapping, vision produit.
 
-##### #0 | Résultats obtenus lors de la Nuit du Code Citoyen
-Cette section contiendra les travaux effectué par l'équipe à la fin de la Nuit du Code Citoyen.
-
 ##### #1 | Présentation de More in Common
 + More in Common est une organisation internationale à but non lucratif fondée en 2017. Elle a pour mission l’immunisation de nos sociétés contre la tentation du repli identitaire, social et culturel. En redonnant le goût de l’évidence à ce que les français ont en commun, More in Common œuvre à bâtir une société plus unie, accueillante et inclusive. 
 + More in Common mène des enquêtes d’opinion inédites dont l’objectif est de cartographier l’opinion des français sur l’ensemble des sujets qui divisent notre société aujourd’hui. Par leur ampleur et leur méthodologie [issus de la recherche en psychologie sociale], ces études sont désormais reconnues comme l’un des outils les plus innovants pour comprendre l’opinion publique et dépasser la polarisation croissante de nos sociétés. 
