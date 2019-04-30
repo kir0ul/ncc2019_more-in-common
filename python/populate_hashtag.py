@@ -3,7 +3,7 @@ import json
 import sys
 import datetime
 
-input_hashtag = sys.argv[1]
+input_hashtags = sys.argv[1]
 storage_location = sys.argv[2]
 
 language = "fr"
@@ -16,12 +16,17 @@ access_token_secret = 'YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D'
 
 def main():
 
+
+	hashtag_query = input_hashtags.strip().replace(",", "+OR+")
+	
+
+
 	try:
 		tweets = 0
 		t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret,tweet_mode= 'extended')
 
-		print("Started storing tweets related to "+ input_hashtag + " at " + storage_location + " since " + str(datetime.datetime.now()))
-		for tweet in t.search(input_hashtag, lang=language):
+		print("Started storing tweets related to "+ input_hashtags + " at " + storage_location + " since " + str(datetime.datetime.now()))
+		for tweet in t.search(hashtag_query, lang=language):
 			with open(storage_location + '/tweet'+str(tweet['id'])+'.json', 'w', encoding='utf8') as file:
 				json.dump(tweet, file)
 				tweets += 1
