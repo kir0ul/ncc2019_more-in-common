@@ -187,12 +187,12 @@ def read_json_folder(path_to_json):
 
 
 def df_to_csv(output_folder):
-	df_users.to_csv(output_folder + '\\' + 'users.csv')
-	df_retweet_users.to_csv(output_folder + '\\' + 'retweet_users.csv')
-	df_tweets.to_csv(output_folder + '\\' + 'tweets.csv')
-	df_users_mentions.to_csv(output_folder + '\\' + 'users_mentions.csv')
-	df_hashtags.to_csv(output_folder + '\\' + 'hashtags.csv')
-	hashtags_docs.to_csv(output_folder + '\\' + 'hashtags_docs.csv')
+	df_users.to_csv(output_folder + '\\' + 'users.csv', index=False)
+	df_retweet_users.to_csv(output_folder + '\\' + 'retweet_users.csv', index=False)
+	df_tweets.to_csv(output_folder + '\\' + 'tweets.csv', index=False)
+	df_users_mentions.to_csv(output_folder + '\\' + 'users_mentions.csv', index=False)
+	df_hashtags.to_csv(output_folder + '\\' + 'hashtags.csv', index=False)
+	hashtags_docs.to_csv(output_folder + '\\' + 'hashtags_docs.csv', index=False)
 
 def main():
 #### loading the databases
