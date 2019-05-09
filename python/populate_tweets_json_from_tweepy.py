@@ -59,7 +59,7 @@ for tweet in t.search(input_hashtag, lang=language):
         ####you need to create a 'tweets_twarc' folder
        
         json.dump(tweet, file)
-    
+
 
 # +
 ## this cell will be deprecated when switching to utility function

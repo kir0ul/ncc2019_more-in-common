@@ -2,4 +2,4 @@ checks:jupytext:
   image: python:3
   script:
     - pip install jupytext
-    - for file in $(git diff --diff-filter=d --name-only origin/master | grep ".*\.ipynb$"); do jupytext --from ipynb --to py:light --test $file; done
+    - ./test/check-jupytext.sh
