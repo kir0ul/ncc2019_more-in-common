@@ -4,6 +4,7 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_table
+import dash_bootstrap_components as dbc
 import pandas as pd
 
 DF_EN = pd.read_csv(
@@ -12,7 +13,8 @@ DF_FR = DF_EN.copy(deep=True)
 DF_FR.rename(columns={
     'State': 'Etat',
     'Installed Capacity (MW)': 'Capacite installee (MW)',
-    "Number of Solar Plants": "Nombre d'installations solaires"
+    "Number of Solar Plants": "Nombre d'installations solaires",
+    "Average MW Per Plant": "Moyenne MW par installation"
 },
              inplace=True)
 
@@ -27,14 +29,27 @@ def generate_table(dataframe):
                                 data=dataframe.to_dict('records'))
 
 
-APP = dash.Dash(__name__)
+APP = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 APP.layout = html.Div([
-    html.Div(id="output-container-button",
-             children="Enter a hashtag and press submit"),
-    html.Div(
-        dcc.Input(id="input-box", type="text", placeholder='Search',
-                  value='')),
-    html.Button("Submit", id="button"),
+    dbc.Row([
+        dbc.Col(html.Div(id="output-container-button",
+                         children="Enter a hashtag and press submit"),
+                width={
+                    "size": 8,
+                    "offset": 1
+                })
+    ]),
+    dbc.Row([
+        dbc.Col(dbc.Input(id="input-box",
+                          type="text",
+                          placeholder='Search',
+                          value=''),
+                width={
+                    "size": 8,
+                    "offset": 1
+                }),
+        dbc.Button("Submit", id="button", color="primary")
+    ]),
     html.H4(children="My nice table"),
     generate_table(DF_EN),
 ])
