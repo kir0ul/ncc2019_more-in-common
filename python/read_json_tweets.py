@@ -202,6 +202,11 @@ def read_json_folder(path_to_json):
 
 
 def df_to_csv(output_folder):
+	dir_path = os.path.dirname(os.path.realpath(__file__))
+	newpath = r('dir_path'+output_folder)
+	if not os.path.exists(newpath):
+		os.makedirs(newpath, exist_ok=True)
+
 	df_users.to_csv(output_folder + '\\' + 'users.csv', index=False)
 	df_retweet_users.to_csv(output_folder + '\\' + 'retweet_users.csv', index=False)
 	df_tweets.to_csv(output_folder + '\\' + 'tweets.csv', index=False)
