@@ -14,8 +14,6 @@
 #     name: python3
 # ---
 
-import tweepy
-
 # +
 import urllib3
 import urllib3.request
@@ -27,50 +25,33 @@ from pandas.io.json import json_normalize
 import pandas as pd
 pd.options.display.max_colwidth = 1000
 import numpy as np
+import re
 
 import nbimporter
 import utility_functions as uf
-# -
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+
+# +
 
 from importlib import reload
 reload(uf)
 
 
-####input your credentials here
-consumer_key = '4ha4rLgP6Ci6fEZtaqttGTKoA'
-consumer_secret = '5ckLaCgfTdfmWM7qS9f2w05pDCSIWRCTHlm7RLnKwK9tCWIz9P'
-access_token = '602145669-jHmxtsl0wSZDFeZxi81GcTzYrD87dRBhF78ip0qo'
-access_token_secret = 'YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D'
-
-#define inputs here
-input_hashtag = "#giletjaune"
-language = "fr"
-since_date = "2018-03-07"
-#n_tweets = 1
-
-uf.db_init()
-rt = 0
+# -
 
 
-from twarc import Twarc
-t = Twarc(consumer_key, consumer_secret, access_token, access_token_secret,tweet_mode= 'extended')
-for tweet in t.search(input_hashtag, lang=language):
-    with open('tweets_twarc/tweet'+str(tweet['id'])+'.json', 'w', encoding='utf8') as file:
-        ####you need to create a 'tweets_twarc' folder
-       
-        json.dump(tweet, file)
-
+# # Loading Databases
 
 # +
-## this cell will be deprecated when switching to utility function
-rt = 0
-#databases initialisations
 def db_init():
     global df_users
     global df_tweets
     global df_hashtags
     global df_users_mentions
     global df_retweet_users
+    global hashtags_docs
     
     #initialisation of databases, df files
 
@@ -114,33 +95,43 @@ def db_init():
                 'lang': []         
                }
     df_tweets = pd.DataFrame(data=d_tweets)
-
-
+    
+    hashtag_doc = {'tweet_id':[], 'hashtags_as_string':[]}
+    hashtags_docs = pd.DataFrame(data = hashtag_doc)
+    
     d_hashtags={'hashtag': [], 'tweet_id': []}
     df_hashtags = pd.DataFrame(data=d_hashtags)
 
-    d_users_mentions = {'tweet_id':[], 'user_id': [], 'screen_name':[], 'name':[]}
+    d_users_mentions = {'tweet_id':[], 'mentioned_user_id': [], 'user_id':[], 'mentioned_screen_name':[], 'screen_name':[]}
     df_users_mentions = pd.DataFrame(data=d_users_mentions)
 
-    d_retweet_users = {'user_id':[], 'original_user_id':[], 'original_tweet_id':[]}
+    d_retweet_users = {'user_id':[], 'original_user_id':[], 'original_tweet_id':[], 'user_screen_name':[], 'original_user_screen_name':[]}
     df_retweet_users= pd.DataFrame(data=d_retweet_users)
 
+    
+def is_a_retweet(tweet):
+    #### returns a true if the tweet is a retweet, false if it's an original tweets 
+    return tweet.get('retweeted_status',None) != None
 
 # store all hashtags related to a tweet
 def store_hashtag(tweet):
     global df_hashtags
+    global hashtags_docs
+    hashtags_as_string = ""
     for raw_hash in tweet['entities']['hashtags']:
             df_hashtags = df_hashtags.append({'hashtag': raw_hash['text'] ,'tweet_id':tweet['id_str']}, ignore_index=True)
+            hashtags_as_string += " " + raw_hash['text']
+    hashtags_docs = hashtags_docs.append({'tweet_id':tweet['id_str'], 'hashtags_as_string': hashtags_as_string}, ignore_index=True)
 
 #store all user mentions contained in the tweet
 def store_user_mentions(tweet):
     global df_users_mentions
     tweet_id = tweet['id_str']
     for raw_mention in tweet['entities']['user_mentions']:
-        screen_name = raw_mention['screen_name']
-        name = raw_mention['name']
-        user_id = raw_mention['id_str']
-        df_users_mentions = df_users_mentions.append({'tweet_id':tweet_id, 'user_id': user_id, 'screen_name':screen_name, 'name':name},ignore_index=True)
+        m_screen_name = raw_mention['screen_name']
+       
+        m_user_id = raw_mention['id_str']
+        df_users_mentions = df_users_mentions.append({'tweet_id':tweet_id, 'mentioned_user_id': m_user_id, 'user_id':tweet['user']['id_str'], 'mentioned_screen_name':m_screen_name, 'screen_name':tweet['user']['screen_name']},ignore_index=True)
 
 #store the author of the tweet        
 def store_user(tweet):
@@ -171,25 +162,26 @@ def store_user(tweet):
 def store_tweet(tweet):
     global df_tweets
     text = re.sub(r"http\S+", "", tweet['full_text']) ## Removes URLs from full text
-    df_tweets = df_tweets.append({'tweet_id':  tweet['id_str'],
-            'created_at': tweet['created_at'],
-            'text': text,
-            'truncated': tweet['truncated'],
-            'source': tweet['source'],
-            'in_reply_to_status_id': tweet['in_reply_to_status_id_str'],
-            'in_reply_to_user_id': tweet['in_reply_to_user_id_str'],
-            'in_reply_to_screen_name': tweet['in_reply_to_screen_name'],
-            'user_id': tweet['user']['id_str'],
-            'geo': tweet['geo'],
-            'coordinates': tweet['coordinates'],
-            'place': tweet['place'],
-            'contributors': tweet['contributors'],
-            'is_quote_status': tweet['is_quote_status'],
-            'retweet_count': tweet['retweet_count'],
-            'favorite_count': tweet['favorite_count'],
-            'favorited': tweet['favorited'],
-            'retweeted': tweet['retweeted'],
-            'lang': tweet['lang'] },ignore_index=True)
+    if tweet['id_str'] not in df_tweets['tweet_id'].values:
+        df_tweets = df_tweets.append({'tweet_id':  tweet['id_str'],
+                'created_at': tweet['created_at'],
+                'text': text,
+                'truncated': tweet['truncated'],
+                'source': tweet['source'],
+                'in_reply_to_status_id': tweet['in_reply_to_status_id_str'],
+                'in_reply_to_user_id': tweet['in_reply_to_user_id_str'],
+                'in_reply_to_screen_name': tweet['in_reply_to_screen_name'],
+                'user_id': tweet['user']['id_str'],
+                'geo': tweet['geo'],
+                'coordinates': tweet['coordinates'],
+                'place': tweet['place'],
+                'contributors': tweet['contributors'],
+                'is_quote_status': tweet['is_quote_status'],
+                'retweet_count': tweet['retweet_count'],
+                'favorite_count': tweet['favorite_count'],
+                'favorited': tweet['favorited'],
+                'retweeted': tweet['retweeted'],
+                'lang': tweet['lang'] },ignore_index=True)
 
 #called when the tweet is a retweet: store the original author of the tweet as well as the user who retweeted it,
 # and the original id of the tweet
@@ -198,26 +190,14 @@ def store_retweet_user(tweet):
     if is_a_retweet(tweet):
         df_retweet_users = df_retweet_users.append({'user_id':tweet['user']['id_str'],
                                                     'original_user_id':tweet['retweeted_status']['user']['id_str'],
-                                                    'original_tweet_id':tweet['retweeted_status']['id_str']}, ignore_index=True)
-##Never used
-##T0D0: proper encapsulation
-def store_influent_users(n):
-    #n is the number of influent users return
-    df_favorite_count = df_tweets.groupby(['user_id'])['favorite_count'].agg('sum').sort_values(ascending=False).head()
-    for i in range(n):
-        d_influent_users = {'user_id':df_favorite_count[0], 
-                            'name':[],
-                            'retweet_count':[],
-                            'favorite_count':[], 
-                            'description':[] 
-                           }
-        
-        
-def is_a_retweet(tweet):
-    #### returns a true if the tweet is a retweet, false if it's an original tweets 
-    global rt
-    rt += 1
-    return tweet.get('retweeted_status',None) != None
+                                                    'original_tweet_id':tweet['retweeted_status']['id_str'],
+                                                    'user_screen_name':tweet['user']['screen_name'],
+                                                    'original_user_screen_name':tweet['retweeted_status']['user']['screen_name']
+                                                   }, ignore_index=True)
+
+
+# -
+
 
 def process_json_tweet(tweet):
     tweet = json.load(tweet)
@@ -230,16 +210,11 @@ def process_json_tweet(tweet):
         store_user(tweet)
         store_hashtag(tweet)
         store_user_mentions(tweet)
-    
 
-
-# -
-
-db_init()
 
 # +
 #### loading the databases
-t= 0
+db_init()
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning) #https://stackoverflow.com/questions/40659212/futurewarning-elementwise-comparison-failed-returning-scalar-but-in-the-futur
 import os
@@ -249,17 +224,12 @@ json_files = [pos_json for pos_json in os.listdir(path_to_json) if pos_json.ends
 for json_file in json_files:
     
     with open(path_to_json+json_file) as tweet:
-        t+=1
+        
         process_json_tweet(tweet)
         
         
         
 # -
-
-df_tweets.head(10);
-print(rt)
-print(t)
-
 
 #tweet example
 df_tweets['text'].iloc[0]
@@ -269,10 +239,143 @@ print(d.min())
 print(d.max())
 print(len(df_tweets.index)) 
 
+
 #primary keys are ok if both return false
 print(df_tweets.duplicated('tweet_id').any())
 print(df_users.duplicated('user_id').any())
 
+
+# # Coocurrence Matrix
+
+# +
+hashtags_docs
+hashtags_as_strings = hashtags_docs['hashtags_as_string']
+bigram_vectorizer = CountVectorizer(ngram_range=(2, 2)) 
+co_occurrences = bigram_vectorizer.fit_transform(hashtags_as_strings)
+sum_occ = np.sum(co_occurrences.todense(),axis=0)
+
+#print('Pretty printig of co_occurrences count:', bigram_vectorizer.get_feature_names(),np.array(sum_occ)[0].tolist())
+
+
+# +
+import networkx as nx
+hashGraph = nx.Graph()
+
+
+pairs = bigram_vectorizer.get_feature_names()
+co_occ = np.array(sum_occ)[0]
+thresh = np.quantile(co_occ, 0.85)
+
+n = len(pairs)
+for i in range(n):
+    pair = pairs[i].split(" ")
+    w1 = pair[0]
+    w2 = pair[1]
+    weight = co_occ[i]
+    if weight > thresh:
+        hashGraph.add_edge(w1, w2, weight=weight)
+
+d = dict(hashGraph.degree)
+# -
+
+d;
+
+# +
+import matplotlib.pyplot as plt
+
+fig_size = plt.rcParams["figure.figsize"]
+# Set figure width to 12 and height to 9
+fig_size[0] = 24
+fig_size[1] = 18
+
+#nx.draw_networkx(hashGraph)
+nx.draw_networkx(hashGraph, nodelist=d.keys(), node_size=[v * 100 for v in d.values()])
+
+plt.show()
+# -
+
+from networkx.drawing.nx_agraph import graphviz_layout
+
+# # Label Propagation and related analysis
+
+retweet_connections = df_retweet_users.groupby(['user_screen_name', 'original_user_screen_name']).size().sort_values(ascending=False).reset_index()
+retweet_connections.columns = ['user_screen_name', 'original_user_screen_name', 'count']
+retweet_connections
+len(retweet_connections.index)
+retweet_connections = retweet_connections[retweet_connections['original_user_screen_name'] != retweet_connections['user_screen_name']]
+
+retweet_connections[retweet_connections['original_user_screen_name'] == 'Bleu_Rochelle']
+
+
+retweet_graph = nx.from_pandas_edgelist(retweet_connections, 'user_screen_name', 'original_user_screen_name', 'count')
+
+
+# +
+nx.draw_networkx(retweet_graph)
+plt.show()
+
+# G.remove_nodes_from(
+
+# +
+list(nx.isolates(retweet_graph))
+#retweet_graph.remove_nodes_from(nx.isolates(retweet_graph))
+
+#nx.draw_networkx(retweet_graph)
+#plt.show()
+
+#retweet_graph.degree()
+
+# +
+#from networkx_viewer import Viewer
+#app = Viewer(retweet_graph)
+#app.mainloop()
+# -
+
+con_comp = sorted(nx.connected_components(retweet_graph), key = len, reverse=True)
+len(con_comp)
+
+
+graphs = list(nx.connected_component_subgraphs(retweet_graph))
+Gc = max(nx.connected_component_subgraphs(retweet_graph), key=len)
+d2 = dict(Gc.degree)
+n=len(d2)
+pos=nx.spring_layout(Gc, k = 1/(n**(1/25)))
+
+
+# +
+#nx.draw_networkx(retweet_graph, nodelist=d2.keys(), node_size=[v * 50 for v in d2.values()], with_labels=False)
+
+nx.draw_networkx(Gc, pos = pos, nodelist=d2.keys(), node_size=[v * 30 for v in d2.values()], edge_color='b',)
+plt.show()
+# -
+
+
+import operator
+sorted_nodes = sorted(d2.items(), key=operator.itemgetter(1), reverse = True)
+
+
+top_nodes = sorted_nodes[:10]
+top_nodes = dict(top_nodes)
+
+
+top_nodes;
+
+pos2=nx.spring_layout(Gc, k = 1/(n**(1/10)))
+
+
+nx.draw_networkx(Gc, pos = pos2, nodelist=top_nodes.keys(), node_size=[v * 50 for v in top_nodes.values()], edge_color='b')
+
+
+nx.write_gexf(hashGraph, "hash.gexf")
+
+
+test_read = nx.read_gexf("ret_comp.gexf")
+
+pos=nx.spring_layout(test_read)
+nx.draw_networkx_labels(test_read, pos= pos)
+plt.show()
+
+plt.show()
 
 # # Aggregations
 #
@@ -294,15 +397,12 @@ df_most_retweeted_users['user_id'] = df_most_retweeted_users['user_id'].astype(o
 df_most_favorited_users_with_info = df_most_favorited_users.set_index('user_id').join(df_users.set_index('user_id')).drop_duplicates().sort_values('favorite_count',ascending=False)
 df_most_retweeted_users_with_info = df_most_retweeted_users.set_index('user_id').join(df_users.set_index('user_id')).drop_duplicates().sort_values('retweet_count',ascending=False)
 
-df_most_retweeted_users_with_info.head(15);
+df_most_retweeted_users_with_info.head(15)
 
 df_most_favorited_users_with_info.head(15);
 
 df_most_retweeted_users_with_info.reset_index()
 df_most_favorited_users_with_info.reset_index();
-
-print(df_most_retweeted_users_with_info['screen_name'])
-print(df_most_favorited_users_with_info['screen_name'])
 
 df_tweets_by_user = df_tweets.groupby(['user_id']).size().to_frame().reset_index()
 df_most_favorited_users_with_info = df_most_favorited_users_with_info.join(df_tweets_by_user.set_index('user_id')).drop_duplicates().sort_values('favorite_count',ascending=False)
@@ -324,10 +424,6 @@ top_influencers_rt['Number of friends'] = top_influencers_rt['Number of friends'
 #add ratios
 top_influencers_fav.loc[:,'Like Tweet Ratio'] = top_influencers_fav.loc[:,"Number of favorites"]/top_influencers_fav.loc[:,"Number of tweets"]
 top_influencers_rt.loc[:,'Retweet Tweet Ratio'] = top_influencers_rt.loc[:,"Number of retweets"]/top_influencers_rt.loc[:,"Number of tweets"]
-
-top_influencers_fav_names = top_influencers_fav['Name'].values
-top_influencers_rt_names = top_influencers_rt['Name'].values
-print(top_influencers_rt_names)
 
 # ## Top hashtags for this input hashtags and by users
 
@@ -358,25 +454,126 @@ def get_tweet_by_username(name):
 def get_related_hashtags_by_username(name):
     d_name = df_aggretated[df_aggretated['Name'] == name][['#',"Used"]].sort_values("Used", ascending = False)
     return d_name
+def get_user_info(name):
+    return df_users[df_users['screen_name'] == name][['screen_name', 'description', 'followers_count' ]]
 
 
 # -
 
+# ## Propagation du bruit
+
+top_influencers_fav_names = top_influencers_fav['Name'].values
+top_influencers_rt_names = top_influencers_rt['Name'].values
+
+df_most_retweeted_users_with_info = df_most_retweeted_users_with_info.reset_index()
+
+df_retweet_users_top_account = df_retweet_users[df_retweet_users['original_user_screen_name'].isin(top_influencers_rt_names)]
+rt_influencers  = df_retweet_users_top_account.groupby(['user_screen_name', 'original_user_screen_name']).size()
+who_rt = rt_influencers.groupby('user_screen_name').size().sort_values(0, ascending = False).reset_index()
+df_userid = df_users[['screen_name' , 'user_id']]
+who_rt.columns = ['user_screen_name', 'count']
+rt_influencers = rt_influencers.reset_index()
+
+df_retweet_users;
+
+
+def who_rt_who(screenname):
+    return rt_influencers[rt_influencers['user_screen_name'] == screenname]
+
+
+# +
+# prepare data for gephi Retweet Network
+df_retweet_users_edges = df_retweet_users[['user_id','original_user_id']]
+df_nodes_p = df_retweet_users[['original_user_id','original_user_screen_name']].rename(columns ={'original_user_id':'user_id','original_user_screen_name': 'user_screen_name'})
+df_retweet_users_nodes = pd.concat([df_retweet_users[['user_id','user_screen_name']],df_nodes_p]).drop_duplicates()
+
+df_retweet_users_edges=df_retweet_users_edges.rename(columns ={'user_id':'Source','original_user_id':'Target'})
+df_retweet_users_nodes=df_retweet_users_nodes.rename(columns ={'user_id':'id','user_screen_name':'label'})
+
+#drop duplicates
+df_retweet_users_edges = df_retweet_users_edges.drop_duplicates()
+df_retweet_users_nodes = df_retweet_users_nodes.drop_duplicates()
+
+df_retweet_users_edges.to_csv('rt_edges.csv',index=False)
+df_retweet_users_nodes.to_csv('rt_nodes.csv',index=False)
+
+
+# prepare data for gephi Mention Network T0D0
+df_mention_edges = pd.DataFrame()
+df_mention_nodes = pd.DataFrame()
+
+# -
+
+df_users_mentions.columns
+
+input_h = "GiletJaune, giletjaune"
+query = input_h.strip().replace(",", "+OR+")
+print(query)
+
+# # Conversation
+
+# Similaire au retweet mais avec les user mentions. Qui parle à qui?
+
+df_users_mentions;
+
+# # OUTPUTS
+#
+
+##OUTPUT: Stats de bases. Quantifier le ‘bruit’
+print("Number of tweets scraped in the current folder: " + str(len(df_tweets.index)))
+print("Number of retweets: " + str(int(df_tweets['retweet_count'].sum())))
+print("Number of favorite: " + str(int(df_tweets['favorite_count'].sum())))
+
+
+# +
+##OUTPUT: Who are the most influential accounts?
+
+print('top retweeted accounts:')
+print(top_influencers_rt_names)
+print('top favorited accounts:')
+print(top_influencers_fav_names)
+
+# +
+##OUTPUT: Stats de base: Hashtags les plus frequents
+df_aggretated.columns
+df_total_hashtag = df_aggretated.groupby('#').size().sort_values(0,ascending = False).reset_index()
+df_total_hashtag.columns = ['#', 'count']
+df_total_hashtag.head(30)
+
+## T0D0 compute Jacquard coefficient
+# -
+
+##OUTPUT: INFO on the most favorited users
+top_influencers_fav
+
+##OUTPUT: INFO on the most retweeted users
+top_influencers_rt
+
+##OUTPUT: which users who retweet the most influential accounts?
+who_rt.head(20)
+
+##output: who are the influencers retweeted by an user, e.g. lexi82600? 
+who_rt_who('lexi82600')
+
+##OUTPUT: Get all tweets by username, eg GiletsJaunesFr
 get_tweet_by_username('GiletsJaunesFr')
 
 
-#output 
+#output: top hashtags written to csv. you can also use function below
 for name in top_influencers_rt_names:
     df_rel = get_related_hashtags_by_username(name)
-    print(name)
     df_rel.to_csv('top_hashtags_by_'+name+'.csv',index=False)
     df_rel=[]
 
+##OUTPUT: What hashtags do influencers use? Call function below with one of the names
 get_related_hashtags_by_username('GiletsJaunesFr')
 
 
+# ## GEPHI Output
+
+df_users_mentions.head(1)
+
 # # NLP
-#
 
 import spacy
 
@@ -440,13 +637,16 @@ def spacy_tokenizer(sentence):
 tqdm.pandas()
 df_tweets["processed_text"] = df_tweets["text"].progress_apply(spacy_tokenizer)
 
-df_tweets.head(10)["processed_text"];
+tqdm.pandas()
+df_users["processed_description"] = df_users["description"].progress_apply(spacy_tokenizer)
+
+df_tweets.head(10)["processed_description"];
 
 vectorizer = CountVectorizer(min_df=5, max_df=0.9, stop_words=stopwords, lowercase=True, token_pattern='[a-zA-Z\-][a-zA-Z\-]{2,}')
 data_vectorized = vectorizer.fit_transform(df_tweets["processed_text"])
 
 ##How many topics do you want to find??
-NUM_TOPICS = 6
+NUM_TOPICS = 3
 
 lda = LatentDirichletAllocation(n_components=NUM_TOPICS, max_iter=10, learning_method='online',verbose=True)
 data_lda = lda.fit_transform(data_vectorized)
@@ -490,6 +690,8 @@ dash
 
 
 
-db_init()
+df_tweets
+
+
 
 

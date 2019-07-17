@@ -90,7 +90,7 @@ def main():
 		options[request]
 
 	except KeyError: print("Error: " + request + " is not a recognized request. Available requests are: rt_users, fav_users, gen_stats, top_hashtags")
-	
-        
+
+
 if __name__ == '__main__':
 	main()
