@@ -50,33 +50,25 @@ pipenv update
 pipenv shell
 ```
 
-To get the help, run:
-```
-python main.py --help
-```
-
-To get some tweets, run:
-```
-python main.py --populate TWITTER_HASHTAG_TO_BE_REPLACED --path PATH_TO_SAVING_FOLDER
-```
-
 ### Getting data from Twitter (optional if you get your data another way like DMI-TCAT)
 
-First we need to get a database of relevant tweets. 
-
-You need to create a folder where you intend to store the tweets. The analysis will later run on an entire folder, so you could choose to create different folders for different hashtags, depending on your purpose. You can track one or multiple hashtags by separating them with commas. To track the hashtag "kusanagi" for example, run
-
+First we need to get a database of relevant tweets.
+The analysis will run on an entire folder, so you could choose to create different folders for different hashtags, depending on your purpose.
+You can track one or multiple hashtags by separating them with commas.
 ```
-python populate_hashtag.py #kusanagi folder_name
+python main.py --method populate --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
 ```
 
-Note that you need to add the hashtag, otherwise you would also retrieve tweets containing the word kusanagi. 
-
-
-To track and store tweets related to a certain hashtag as they are tweeted, run
-
+To track and store tweets related to a certain hashtag as they are tweeted from now on, run:
 ```
-python track_hashtag.py #kusanagai folder_name
+python main.py --method track --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
+```
+
+**Note that you need to add the hashtag, otherwise you would also retrieve tweets containing the hashtag you chose.**
+
+In any case, you can get the help with:
+```
+python main.py --help
 ```
 
 Let's move on to the analysis.
