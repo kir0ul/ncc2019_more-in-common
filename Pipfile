@@ -16,6 +16,7 @@ twarc = "*"
 tweepy = "*"
 nbimporter = "*"
 sklearn = "*"
+click = "*"
 
 [requires]
 python_version = "3.5"

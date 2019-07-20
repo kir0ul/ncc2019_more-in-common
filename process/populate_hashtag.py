@@ -1,10 +1,10 @@
-from twarc import Twarc
-import json
 import sys
 import datetime
+import traceback
+import os
+from twarc import Twarc
+import json
 
-input_hashtags = sys.argv[1]
-storage_location = sys.argv[2]
 
 language = "fr"
 
@@ -15,7 +15,9 @@ access_token = "602145669-jHmxtsl0wSZDFeZxi81GcTzYrD87dRBhF78ip0qo"
 access_token_secret = "YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D"
 
 
-def main():
+def main(input_hashtags, storage_location):
+    if not os.path.exists(storage_location):
+        os.mkdir(storage_location)
 
     hashtag_query = input_hashtags.strip().replace(",", "+OR+")
 
@@ -39,7 +41,7 @@ def main():
         )
         for tweet in t.search(hashtag_query, lang=language):
             with open(
-                storage_location + "/tweet" + str(tweet["id"]) + ".json",
+                os.path.join(storage_location + "tweet" + str(tweet["id"]) + ".json"),
                 "w",
                 encoding="utf8",
             ) as file:
@@ -48,10 +50,6 @@ def main():
 
     except KeyboardInterrupt:
         print("Shutdown requested...successfully stored " + str(tweets) + " tweets")
-    except Exception:
+    except BaseException:
         traceback.print_exc(file=sys.stdout)
     sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()
