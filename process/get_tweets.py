@@ -15,7 +15,7 @@ access_token = "602145669-jHmxtsl0wSZDFeZxi81GcTzYrD87dRBhF78ip0qo"
 access_token_secret = "YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D"
 
 
-def main(input_hashtags, storage_location):
+def main(get_method, input_hashtags, storage_location):
     if not os.path.exists(storage_location):
         os.mkdir(storage_location)
 
@@ -39,17 +39,34 @@ def main(input_hashtags, storage_location):
             + " since "
             + str(datetime.datetime.now())
         )
-        for tweet in t.search(hashtag_query, lang=language):
-            with open(
-                os.path.join(storage_location + "tweet" + str(tweet["id"]) + ".json"),
-                "w",
-                encoding="utf8",
-            ) as file:
-                json.dump(tweet, file)
-                tweets += 1
+
+        if get_method == "populate":
+            for tweet in t.search(hashtag_query, lang=language):
+                with open(
+                    os.path.join(
+                        storage_location + "tweet" + str(tweet["id"]) + ".json"
+                    ),
+                    "w",
+                    encoding="utf8",
+                ) as file:
+                    json.dump(tweet, file)
+                    tweets += 1
+
+        elif get_method == "track":
+            for tweet in t.filter(hashtag_query):
+                with open(
+                    storage_location + "/tweet" + str(tweet["id"]) + ".json",
+                    "w",
+                    encoding="utf8",
+                ) as file:
+                    json.dump(tweet, file)
+                    tweets += 1
+        else:
+            print("No method defined, exiting...")
 
     except KeyboardInterrupt:
         print("Shutdown requested...successfully stored " + str(tweets) + " tweets")
     except BaseException:
         traceback.print_exc(file=sys.stdout)
+
     sys.exit(0)
