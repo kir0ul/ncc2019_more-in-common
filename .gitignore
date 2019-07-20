@@ -3,3 +3,4 @@ temp-plot.html
 plot.html
 .ipynb_checkpoints/
 *.bak
+/data

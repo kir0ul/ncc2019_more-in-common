@@ -12,6 +12,10 @@ dash = "*"
 dash-daq = "*"
 pandas = "*"
 dash-bootstrap-components = "*"
+twarc = "*"
+tweepy = "*"
+nbimporter = "*"
+sklearn = "*"
 
 [requires]
 python_version = "3.5"

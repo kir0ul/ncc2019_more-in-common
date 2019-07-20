@@ -1,5 +1,33 @@
+stages:
+  - code validation
+  - notebook check
+
 checks:jupytext:
   image: python:3
+  stage: notebook check
   script:
     - pip install jupytext
     - ./test/check-jupytext.sh
+
+lint:pylint:
+  image: python:3.6
+  stage: code validation
+  script:
+    - pip install pylint
+    - for file in $(find . -regex ".*\.py$"); do pylint $file; done
+  allow_failure: true
+
+lint:flake8:
+  image: python:3.6
+  stage: code validation
+  script:
+    - pip install flake8
+    - flake8
+  allow_failure: true
+
+black:files:
+  image: python:3.6
+  stage: code validation
+  script:
+    - pip install black
+    - black --check .
