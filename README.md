@@ -33,7 +33,7 @@ Here you will find several scripts to load a tweets database, tracking certain h
 
 ### Prerequisites
 
-You will need python and jupyter notebook.
+You will need Python, Pip and jupyter notebook.
 
 You will need to register an application at apps.twitter.com. Once you've created your application, note down the consumer key, consumer secret and then click to generate an access token and access token secret. With these four variables in hand you are ready to start using twarc.
 
@@ -41,6 +41,24 @@ We query Twitter's API to retrieve tweets and are hence limited by the query lim
 
 If you want to run some graph analysis, you will also need [networkx](https://networkx.github.io/documentation/stable/install.html)
 
+To install the project, run the following commands:
+```
+git clone https://gitlab.com/latitudes-exploring-tech-for-good/more-in-common/ncc2019_more-in-common.git
+cd ncc2019_more-in-common
+pip install pipenv
+pipenv update
+pipenv shell
+```
+
+To get the help, run:
+```
+python main.py --help
+```
+
+To get some tweets, run:
+```
+python main.py --populate TWITTER_HASHTAG_TO_BE_REPLACED --path PATH_TO_SAVING_FOLDER
+```
 
 ### Getting data from Twitter (optional if you get your data another way like DMI-TCAT)
 
