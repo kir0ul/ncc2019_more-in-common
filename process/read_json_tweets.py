@@ -1,20 +1,20 @@
 import csv
 import json
 import sys
+import warnings
+import os
 
 import pandas as pd
 import numpy as np
 import re
-
-import warnings
+from tqdm import tqdm
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
-
-import os
 
 
 json_folder = sys.argv[1]
 output_folder = sys.argv[2]
+output_folder = os.path.abspath(output_folder)
 
 
 def db_init():
@@ -177,7 +177,12 @@ def store_user(tweet):
 # store the content of the tweet
 def store_tweet(tweet):
     global df_tweets
-    text = re.sub(r"http\S+", "", tweet["full_text"])  ## Removes URLs from full text
+    if tweet.get("full_text"):
+        text = re.sub(
+            r"http\S+", "", tweet.get("full_text")
+        )  ## Removes URLs from full text
+    else:
+        text = ""
     if tweet["id_str"] not in df_tweets["tweet_id"].values:
         if is_a_retweet(tweet):
             store_tweet(tweet["retweeted_status"])
@@ -246,25 +251,29 @@ def read_json_folder(path_to_json):
     json_files = [
         pos_json for pos_json in os.listdir(path_to_json) if pos_json.endswith(".json")
     ]
-    for json_file in json_files:
+    for json_file in tqdm(json_files):
 
-        with open(path_to_json + "\\" + json_file) as tweet:
+        with open(os.path.join(path_to_json, json_file)) as tweet:
 
             process_json_tweet(tweet)
 
 
 def df_to_csv(output_folder):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    newpath = r("dir_path" + output_folder)
+    newpath = os.path.join(dir_path, output_folder)
     if not os.path.exists(newpath):
         os.makedirs(newpath, exist_ok=True)
 
-    df_users.to_csv(output_folder + "\\" + "users.csv", index=False)
-    df_retweet_users.to_csv(output_folder + "\\" + "retweet_users.csv", index=False)
-    df_tweets.to_csv(output_folder + "\\" + "tweets.csv", index=False)
-    df_users_mentions.to_csv(output_folder + "\\" + "users_mentions.csv", index=False)
-    df_hashtags.to_csv(output_folder + "\\" + "hashtags.csv", index=False)
-    hashtags_docs.to_csv(output_folder + "\\" + "hashtags_docs.csv", index=False)
+    df_users.to_csv(os.path.join(output_folder, "users.csv"), index=False)
+    df_retweet_users.to_csv(
+        os.path.join(output_folder, "retweet_users.csv"), index=False
+    )
+    df_tweets.to_csv(os.path.join(output_folder, "tweets.csv"), index=False)
+    df_users_mentions.to_csv(
+        os.path.join(output_folder, "users_mentions.csv"), index=False
+    )
+    df_hashtags.to_csv(os.path.join(output_folder, "hashtags.csv"), index=False)
+    hashtags_docs.to_csv(os.path.join(output_folder, "hashtags_docs.csv"), index=False)
 
 
 def main():

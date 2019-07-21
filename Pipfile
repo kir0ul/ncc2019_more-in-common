@@ -17,6 +17,7 @@ tweepy = "*"
 nbimporter = "*"
 sklearn = "*"
 click = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.5"

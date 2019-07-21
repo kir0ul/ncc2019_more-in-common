@@ -17,7 +17,7 @@ access_token_secret = "YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D"
 
 def main(get_method, input_hashtags, storage_location):
     if not os.path.exists(storage_location):
-        os.mkdir(storage_location)
+        os.makedirs(storage_location, exist_ok=True)
 
     hashtag_query = input_hashtags.strip().replace(",", "+OR+")
 
