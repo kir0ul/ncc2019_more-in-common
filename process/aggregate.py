@@ -9,7 +9,6 @@ from pandas.io.json import json_normalize
 
 csv_folder = sys.argv[1]
 request = sys.argv[2]
-SEP = os.path.sep
 
 
 def read_all_csv(csv_folder):
@@ -20,12 +19,12 @@ def read_all_csv(csv_folder):
     global df_retweet_users
     global hashtags_docs
 
-    df_users = pd.read_csv(csv_folder + SEP + "users.csv")
-    df_tweets = pd.read_csv(csv_folder + SEP + "tweets.csv")
-    df_hashtags = pd.read_csv(csv_folder + SEP + "hashtags.csv")
-    df_users_mentions = pd.read_csv(csv_folder + SEP + "users_mentions.csv")
-    df_retweet_users = pd.read_csv(csv_folder + SEP + "retweet_users.csv")
-    hashtags_docs = pd.read_csv(csv_folder + SEP + "hashtags_docs.csv")
+    df_users = pd.read_csv(os.path.join(csv_folder, "users.csv"))
+    df_tweets = pd.read_csv(os.path.join(csv_folder, "tweets.csv"))
+    df_hashtags = pd.read_csv(os.path.join(csv_folder, "hashtags.csv"))
+    df_users_mentions = pd.read_csv(os.path.join(csv_folder, "users_mentions.csv"))
+    df_retweet_users = pd.read_csv(os.path.join(csv_folder, "retweet_users.csv"))
+    hashtags_docs = pd.read_csv(os.path.join(csv_folder, "hashtags_docs.csv"))
 
 
 # Top retweeted users
@@ -85,6 +84,7 @@ def get_top_rt_users():
         / top_influencers_rt.loc[:, "Number of tweets"]
     )
 
+    print(top_influencers_rt.head())
     return top_influencers_rt
 
 
@@ -145,6 +145,7 @@ def get_top_fav_users():
         / top_influencers_fav.loc[:, "Number of tweets"]
     )
 
+    print(top_influencers_fav.head())
     return top_influencers_fav
 
 
@@ -179,6 +180,7 @@ def top_hashtags():
         df_aggretated.groupby("#").size().sort_values(0, ascending=False).reset_index()
     )
     df_total_hashtag.columns = ["#", "count"]
+    print(df_total_hashtag.head())
     return df_total_hashtag
 
 
