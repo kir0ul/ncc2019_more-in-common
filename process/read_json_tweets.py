@@ -12,11 +12,6 @@ from tqdm import tqdm
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
-json_folder = sys.argv[1]
-output_folder = sys.argv[2]
-output_folder = os.path.abspath(output_folder)
-
-
 def db_init():
     global df_users
     global df_tweets
@@ -276,12 +271,9 @@ def df_to_csv(output_folder):
     hashtags_docs.to_csv(os.path.join(output_folder, "hashtags_docs.csv"), index=False)
 
 
-def main():
+def main(json_folder, output_folder):
+    output_folder = os.path.abspath(output_folder)
     #### loading the databases
     db_init()
     read_json_folder(json_folder)
     df_to_csv(output_folder)
-
-
-if __name__ == "__main__":
-    main()

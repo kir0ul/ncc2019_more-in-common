@@ -15,7 +15,7 @@ access_token = "602145669-jHmxtsl0wSZDFeZxi81GcTzYrD87dRBhF78ip0qo"
 access_token_secret = "YFLMmVVdcN4gb4KDX3MeOjbjxoKnnsFvjKxjRGMkkEZ5D"
 
 
-def main(get_method, input_hashtags, storage_location):
+def main(get_method=None, input_hashtags=None, storage_location=None):
     if not os.path.exists(storage_location):
         os.makedirs(storage_location, exist_ok=True)
 
