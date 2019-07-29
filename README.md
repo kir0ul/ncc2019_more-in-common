@@ -156,17 +156,34 @@ Options:
 
 ### Getting statistics from data
 
-Given csv_folder which contains csv outputted from the previous section, a general request will typically look like:
+Given `TWEET_FOLDER` being the path to the folder which contains CSV files outputted
+from the previous section, a general request will typically look like:
 
 ```
-python aggregate.py csv_folder request
+python main.py stats TWEET_FOLDER --infos rt_users
 ```
 The following requests are available:
 
-* rt_users: informations about users who were most retweeted
-* fav_users: informations about users who were most favorited
-* gen_stats: general statistics table
-* top_hashtags: hashtags occurence table
+* `rt_users`: informations about users who were most retweeted
+* `fav_users`: informations about users who were most favorited
+* `gen_stats`: general statistics table
+* `top_hashtags`: hashtags occurence table
+
+You can get the help with the following command:
+```
+python main.py stats --help
+```
+Which yields:
+```
+Usage: main.py stats [OPTIONS] TWEET_FOLDER
+
+  Compute statistics on already saved data
+
+Options:
+  --infos [rt_users|fav_users|gen_stats|top_hashtags]
+                                  Type of statistics to compute
+  --help                          Show this message and exit.
+```
 
 There is also a more specific query available which looks like
 
