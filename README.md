@@ -83,15 +83,16 @@ python main.py --help
 ```
 Which yields:
 ```
-python main.py --help
 Usage: main.py [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
 
 Commands:
-  get   Get tweets from Twitter according to the specified HASHTAGS.
-  read  Read already saved tweets from IMPORT_FOLDER and export them to...
+  get    Get tweets from Twitter according to the specified HASHTAGS.
+  query  Query on already saved data
+  read   Read already saved tweets from IMPORT_FOLDER and export them to...
+  stats  Compute statistics on already saved data
 ``` 
 
 ### Getting data from Twitter (optional if you get your data another way like DMI-TCAT)
@@ -180,21 +181,36 @@ Usage: main.py stats [OPTIONS] TWEET_FOLDER
   Compute statistics on already saved data
 
 Options:
-  --infos [rt_users|fav_users|gen_stats|top_hashtags]
+  --option [rt_users|fav_users|gen_stats|top_hashtags]
                                   Type of statistics to compute
   --help                          Show this message and exit.
 ```
 
-There is also a more specific query available which looks like
+There is also a more specific query available which looks like:
 
 ```
-python query_input.py csv_folder request input
+python main.py query CSV_FOLDER INPUT_TO_SEARCH --option OPTION_TO_CHOOSE
 ```
 
 Available requests are:
+* `tweet_by`: get all tweets tweeted by 'input'
+* `related_hash_by`: get all hashtags related to hashtag 'input'
 
-* tweet_by: get all tweets tweeted by 'input'
-* related_hash_by: get all hashtags related to hashtag 'input'
+You can get the help with the following command:
+```
+python main.py stats --help
+```
+Which yields:
+```
+Usage: main.py query [OPTIONS] TWEET_FOLDER QUERY
+
+  Query on already saved data
+
+Options:
+  --option [get_tweet_by|get_related_hash_by]
+                                  Type of statistics to compute
+  --help                          Show this message and exit.
+```
 
 ### Graph Analysis (under construction)
 
