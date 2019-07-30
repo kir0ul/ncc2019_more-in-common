@@ -2,6 +2,7 @@ import click
 
 from process import get_tweets, read_json_tweets
 from process.aggregate import Aggregate
+from process.query_input import Query
 
 
 @click.group()
@@ -36,21 +37,38 @@ def read(import_folder, export_folder):
 @cli.command()
 @click.argument("tweet-folder", type=click.Path())
 @click.option(
-    "--infos",
+    "--option",
     type=click.Choice(["rt_users", "fav_users", "gen_stats", "top_hashtags"]),
     help="Type of statistics to compute",
 )
-def stats(tweet_folder, infos="gen_stats"):
+def stats(tweet_folder, option="gen_stats"):
     """Compute statistics on already saved data"""
     aggregate = Aggregate(tweet_folder)
-    if infos == "rt_users":
+    if option == "rt_users":
         aggregate.get_top_rt_users()
-    elif infos == "fav_users":
+    elif option == "fav_users":
         aggregate.get_top_fav_users()
-    elif infos == "fav_users":
+    elif option == "fav_users":
         aggregate.gen_stats()
-    elif infos == "top_hashtags":
+    elif option == "top_hashtags":
         aggregate.top_hashtags()
+
+
+@cli.command()
+@click.argument("tweet-folder", type=click.Path())
+@click.argument("query")
+@click.option(
+    "--option",
+    type=click.Choice(["get_tweet_by", "get_related_hash_by"]),
+    help="Type of statistics to compute",
+)
+def query(tweet_folder, query, option="get_tweet_by"):
+    """Query on already saved data"""
+    query = Query(tweet_folder)
+    if option == "get_tweet_by":
+        query.get_tweet_by(query)
+    elif option == "get_related_hash_by":
+        query.get_related_hash_by(query)
 
 
 if __name__ == "__main__":
