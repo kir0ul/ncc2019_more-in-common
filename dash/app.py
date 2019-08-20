@@ -11,6 +11,8 @@ DF = pd.read_csv(
     "/home/andrea/Perso/Dev/ncc2019_more-in-common/data/derugy_csv/hashtags.csv"
 )
 
+ROW_STYLE = {"marginBottom": 30, "marginTop": 30}
+
 
 def generate_table(dataframe):
     """Generate table from DataFrame"""
@@ -24,42 +26,38 @@ def generate_table(dataframe):
 APP = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 APP.layout = html.Div(
     [
-        dbc.Row(
-            [
-                dbc.Col(
-                    html.Div(
-                        id="output-container-button",
-                        children="Select the folder where the tweets have been downloaded",
+        dbc.Container(
+            children=[
+                dbc.Row(
+                    dbc.Col(
+                        dcc.Dropdown(
+                            options=[
+                                {"label": "Hashtags", "value": "hashtags"},
+                                {"label": "Tweets", "value": "tweets"},
+                                {"label": "Users", "value": "users"},
+                            ]
+                        ),
+                        width=12,
                     ),
-                    width={"size": 8, "offset": 1},
-                )
+                    justify="center",
+                    style=ROW_STYLE,
+                ),
+                dbc.Row([generate_table(DF)], justify="center", style=ROW_STYLE),
             ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Upload(html.Button("Choose folder")),
-                    width={"size": 8, "offset": 1},
-                )
-            ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dbc.Input(
-                        id="input-box",
-                        type="text",
-                        placeholder="Tweets folder",
-                        value="",
-                    ),
-                    width={"size": 8, "offset": 1},
-                )
-            ]
-        ),
-        dbc.Row([html.H4(children="Hashtags table")]),
-        dbc.Row([generate_table(DF)]),
+        )
     ]
 )
+
+
+# @APP.callback(
+#     Output("input-box", "value"),
+#     [Input("choose-folder", "contents")],
+#     [State("choose-folder", "filename")],
+# )
+# def update_output(list_of_contents, list_of_names):
+#     if list_of_names:
+#         children = list_of_names
+#         return children
 
 
 # @APP.callback(
