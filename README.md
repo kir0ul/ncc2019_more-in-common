@@ -214,3 +214,10 @@ Options:
 
 ### Graph Analysis (under construction)
 
+## Graphical interface
+
+To start the graphical interface, run the following command:
+
+```
+pipenv run python front/app.py
+```

@@ -1,5 +1,7 @@
 """Dash interface"""
 
+import os
+
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
@@ -10,8 +12,19 @@ import pandas as pd
 DF = pd.read_csv(
     "/home/andrea/Perso/Dev/ncc2019_more-in-common/data/derugy_csv/hashtags.csv"
 )
-
 ROW_STYLE = {"marginBottom": 30, "marginTop": 30}
+DATA_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data"
+)
+
+
+def get_tweets_folders_names(folder_path):
+    list_dir = os.listdir(folder_path)
+    tweets_folders = []
+    for item in list_dir:
+        if os.path.isdir(os.path.join(folder_path, item)):
+            tweets_folders.append({"label": item, "value": item})
+    return tweets_folders
 
 
 def generate_table(dataframe):
@@ -30,13 +43,7 @@ APP.layout = html.Div(
             children=[
                 dbc.Row(
                     dbc.Col(
-                        dcc.Dropdown(
-                            options=[
-                                {"label": "Hashtags", "value": "hashtags"},
-                                {"label": "Tweets", "value": "tweets"},
-                                {"label": "Users", "value": "users"},
-                            ]
-                        ),
+                        dcc.Dropdown(options=get_tweets_folders_names(DATA_PATH)),
                         width=12,
                     ),
                     justify="center",
