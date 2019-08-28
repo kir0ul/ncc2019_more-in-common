@@ -9,13 +9,29 @@ import dash_table
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-DF = pd.read_csv(
-    "/home/andrea/Perso/Dev/ncc2019_more-in-common/data/derugy_csv/hashtags.csv"
-)
+from process import read_json_tweets
+from process.aggregate import Aggregate
+
+
 ROW_STYLE = {"marginBottom": 30, "marginTop": 30}
 DATA_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data"
 )
+
+IMPORT_FOLDER = "derugy"
+
+
+def compute_dataframe(tweets_folder):
+    import_path = os.path.join(DATA_PATH, tweets_folder)
+    export_path = os.path.join(import_path, "CSV")
+
+    read_json_tweets.main(import_path, export_path)
+    aggregate = Aggregate(export_path)
+    res = aggregate.top_hashtags()
+    return res
+
+
+DF = compute_dataframe(IMPORT_FOLDER)
 
 
 def get_tweets_folders_names(folder_path):
@@ -27,7 +43,7 @@ def get_tweets_folders_names(folder_path):
     return tweets_folders
 
 
-def generate_table(dataframe):
+def generate_html_table_from_df(dataframe):
     """Generate table from DataFrame"""
     return dash_table.DataTable(
         id="table",
@@ -49,7 +65,9 @@ APP.layout = html.Div(
                     justify="center",
                     style=ROW_STYLE,
                 ),
-                dbc.Row([generate_table(DF)], justify="center", style=ROW_STYLE),
+                dbc.Row(
+                    [generate_html_table_from_df(DF)], justify="center", style=ROW_STYLE
+                ),
             ]
         )
     ]
