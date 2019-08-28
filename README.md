@@ -79,11 +79,11 @@ pipenv shell
 
 A command line interface is available. You can get the help with:
 ```
-python main.py --help
+python cli.py --help
 ```
 Which yields:
 ```
-Usage: main.py [OPTIONS] COMMAND [ARGS]...
+Usage: cli.py [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
@@ -101,23 +101,23 @@ First we need to get a database of relevant tweets.
 The analysis will run on an entire folder, so you could choose to create different folders for different hashtags, depending on your purpose.
 You can track one or multiple hashtags by separating them with commas.
 ```
-python main.py --method populate --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
+python cli.py --method populate --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
 ```
 
 To track and store tweets related to a certain hashtag as they are tweeted from now on, run:
 ```
-python main.py --method track --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
+python cli.py --method track --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
 ```
 
 **Note that you need to add the hashtag, otherwise you would also retrieve tweets containing the hashtag you chose.**
 
 You can get the help with the following command:
 ```
-python main.py get --help
+python cli.py get --help
 ```
 Which yields:
 ```
-Usage: main.py get [OPTIONS] HASHTAGS PATH
+Usage: cli.py get [OPTIONS] HASHTAGS PATH
 
   Get tweets from Twitter according to the specified HASHTAGS. Save them in
   JSON format in the specified PATH
@@ -138,15 +138,15 @@ If you collected tweets with the above method, your tweets will be JSON formatte
 Run the following to convert them into multiple tables (users, tweets, mentions, retweets, hashtags) in csv format.
 
 ```
-python main.py read data/yellowvest_import data/yellowvest_export
+python cli.py read data/yellowvest_import data/yellowvest_export
 ```
 You can get the help with the following command:
 ```
-python main.py read --help
+python cli.py read --help
 ```
 Which yields:
 ```
-Usage: main.py read [OPTIONS] IMPORT_FOLDER EXPORT_FOLDER
+Usage: cli.py read [OPTIONS] IMPORT_FOLDER EXPORT_FOLDER
 
   Read already saved tweets from IMPORT_FOLDER and export them to
   EXPORT_FOLDER as CSV tables
@@ -161,7 +161,7 @@ Given `TWEET_FOLDER` being the path to the folder which contains CSV files outpu
 from the previous section, a general request will typically look like:
 
 ```
-python main.py stats TWEET_FOLDER --infos rt_users
+python cli.py stats TWEET_FOLDER --infos rt_users
 ```
 The following requests are available:
 
@@ -172,11 +172,11 @@ The following requests are available:
 
 You can get the help with the following command:
 ```
-python main.py stats --help
+python cli.py stats --help
 ```
 Which yields:
 ```
-Usage: main.py stats [OPTIONS] TWEET_FOLDER
+Usage: cli.py stats [OPTIONS] TWEET_FOLDER
 
   Compute statistics on already saved data
 
@@ -189,7 +189,7 @@ Options:
 There is also a more specific query available which looks like:
 
 ```
-python main.py query CSV_FOLDER INPUT_TO_SEARCH --option OPTION_TO_CHOOSE
+python cli.py query CSV_FOLDER INPUT_TO_SEARCH --option OPTION_TO_CHOOSE
 ```
 
 Available requests are:
@@ -198,11 +198,11 @@ Available requests are:
 
 You can get the help with the following command:
 ```
-python main.py stats --help
+python cli.py stats --help
 ```
 Which yields:
 ```
-Usage: main.py query [OPTIONS] TWEET_FOLDER QUERY
+Usage: cli.py query [OPTIONS] TWEET_FOLDER QUERY
 
   Query on already saved data
 
@@ -219,5 +219,5 @@ Options:
 To start the graphical interface, run the following command:
 
 ```
-pipenv run python front/app.py
+pipenv run python main.py
 ```
