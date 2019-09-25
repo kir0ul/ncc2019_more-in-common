@@ -7,7 +7,7 @@ import dash_html_components as html
 import dash_core_components as dcc
 import dash_table
 import dash_bootstrap_components as dbc
-import pandas as pd
+from dash.dependencies import Output, Input, State
 
 from process import read_json_tweets
 from process.aggregate import Aggregate
@@ -18,8 +18,6 @@ DATA_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data"
 )
 
-IMPORT_FOLDER = "derugy"
-
 
 def compute_dataframe(tweets_folder):
     import_path = os.path.join(DATA_PATH, tweets_folder)
@@ -29,9 +27,6 @@ def compute_dataframe(tweets_folder):
     aggregate = Aggregate(export_path)
     res = aggregate.top_hashtags()
     return res
-
-
-DF = compute_dataframe(IMPORT_FOLDER)
 
 
 def get_tweets_folders_names(folder_path):
@@ -59,45 +54,49 @@ APP.layout = html.Div(
             children=[
                 dbc.Row(
                     dbc.Col(
-                        dcc.Dropdown(options=get_tweets_folders_names(DATA_PATH)),
+                        dcc.Dropdown(
+                            id="dropdown", options=get_tweets_folders_names(DATA_PATH)
+                        ),
                         width=12,
                     ),
                     justify="center",
                     style=ROW_STYLE,
                 ),
                 dbc.Row(
-                    [generate_html_table_from_df(DF)], justify="center", style=ROW_STYLE
+                    dbc.Col(
+                        dbc.Button(
+                            id="submit",
+                            n_clicks=0,
+                            children="Submit",
+                            block=True,
+                            color="primary",
+                        ),
+                        width=12,
+                    ),
+                    justify="center",
+                    style=ROW_STYLE,
                 ),
+                dbc.Row([html.Div(id="results")], justify="center", style=ROW_STYLE),
             ]
         )
     ]
 )
 
 
-# @APP.callback(
-#     Output("input-box", "value"),
-#     [Input("choose-folder", "contents")],
-#     [State("choose-folder", "filename")],
-# )
-# def update_output(list_of_contents, list_of_names):
-#     if list_of_names:
-#         children = list_of_names
-#         return children
+@APP.callback(
+    [Output("results", "children")],
+    [Input("dropdown", "value")],
+    [State("submit", "children")],
+)
+def update_table(value, children):
+    """Update table"""
 
-
-# @APP.callback(
-#     [
-#         dash.dependencies.Output("table", "columns"),
-#         dash.dependencies.Output("table", "data"),
-#     ],
-#     [dash.dependencies.Input("button", "n_clicks")],
-#     [dash.dependencies.State("input-box", "value")],
-# )
-# def update_output(n_clicks, value):
-#     """Update table"""
-#     columns = [{"name": i, "id": i} for i in DF.columns]
-#     data = DF.to_dict("records")
-#     return columns, data
+    if value:
+        df = compute_dataframe(value)
+        dt = generate_html_table_from_df(df)
+        return [dt]
+    else:
+        return [html.Div(id="results")]
 
 
 if __name__ == "__main__":
