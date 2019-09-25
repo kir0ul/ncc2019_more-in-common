@@ -85,13 +85,13 @@ APP.layout = html.Div(
 
 @APP.callback(
     [Output("results", "children")],
-    [Input("dropdown", "value")],
-    [State("submit", "children")],
+    [Input("submit", "n_clicks")],
+    [State("dropdown", "value")],
 )
-def update_table(value, children):
+def update_table(n_clicks, value):
     """Update table"""
 
-    if value:
+    if value and n_clicks:
         df = compute_dataframe(value)
         dt = generate_html_table_from_df(df)
         return [dt]
