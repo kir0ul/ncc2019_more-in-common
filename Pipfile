@@ -8,9 +8,16 @@ ipdb = "*"
 ipython = "*"
 
 [packages]
-Flask = "*"
-plotly = "*"
+dash = "*"
+dash-daq = "*"
 pandas = "*"
+dash-bootstrap-components = "*"
+twarc = "*"
+tweepy = "*"
+nbimporter = "*"
+sklearn = "*"
+click = "*"
+tqdm = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "3.7"
