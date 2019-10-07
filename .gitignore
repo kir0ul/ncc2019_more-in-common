@@ -1,9 +1,16 @@
+# Test
 fig.svg
 temp-plot.html
 plot.html
-.ipynb_checkpoints/
-*.bak
+
+# Virtual Env
+ve_*
+
+# Data
 /data
 
+# Temp
 .DS_Store
+.ipynb_checkpoints/
+*.bak
 __pycache__
