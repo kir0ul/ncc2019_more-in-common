@@ -4,3 +4,6 @@ plot.html
 .ipynb_checkpoints/
 *.bak
 /data
+
+.DS_Store
+__pycache__

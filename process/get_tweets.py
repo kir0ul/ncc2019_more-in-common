@@ -44,7 +44,7 @@ def main(get_method=None, input_hashtags=None, storage_location=None):
             for tweet in t.search(hashtag_query, lang=language):
                 with open(
                     os.path.join(
-                        storage_location + "tweet" + str(tweet["id"]) + ".json"
+                        storage_location, "tweet" + str(tweet["id"]) + ".json"
                     ),
                     "w",
                     encoding="utf8",
@@ -55,7 +55,7 @@ def main(get_method=None, input_hashtags=None, storage_location=None):
         elif get_method == "track":
             for tweet in t.filter(hashtag_query):
                 with open(
-                    storage_location + "/tweet" + str(tweet["id"]) + ".json",
+                    storage_location, "/tweet" + str(tweet["id"]) + ".json",
                     "w",
                     encoding="utf8",
                 ) as file:

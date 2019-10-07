@@ -15,6 +15,7 @@ def cli():
 @click.argument("path", type=click.Path())
 @click.option(
     "--method",
+    default="populate",
     type=click.Choice(["populate", "track"]),
     help="Use 'populate' to get already existing tweets"
     " or 'track' to get new tweets published from now on",

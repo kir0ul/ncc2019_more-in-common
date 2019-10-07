@@ -47,12 +47,11 @@ Il s’agit donc d’identifier:
 
 Comme projet pilote, nous aimerions tenter de délimiter puis créer des espaces de dialogue via les réseaux sociaux, et en particulier Twitter. D’où le défi qui suit…
 
-## Tools for analysis
+# Tools for analysis
 
 Here you will find several scripts to load a tweets database, tracking certain hashtags, run an analysis and export your results. 
 
-
-### Prerequisites
+## Prerequisites
 
 You will need Python, Pip and jupyter notebook.
 
@@ -75,7 +74,28 @@ pipenv update
 pipenv shell
 ```
 
-### Command line interface
+## Quick start
+
+Retrieve some tweets from `twitter` using the `Command Line Interface`:
+
+```
+python cli.py get "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" PATH_TO_SAVING_FOLDER
+```
+
+Example:
+```
+python cli.py get glyphosate data/glyphosate
+
+```
+
+Start the graphical interface (web page) to run some analysis on the data:
+```
+pipenv run python main.py
+```
+
+Now you can access the user interface in your browser: `http://127.0.0.1:8050/`
+
+## Command line interface
 
 A command line interface is available. You can get the help with:
 ```
@@ -93,20 +113,22 @@ Commands:
   query  Query on already saved data
   read   Read already saved tweets from IMPORT_FOLDER and export them to...
   stats  Compute statistics on already saved data
-``` 
+```
 
 ### Getting data from Twitter (optional if you get your data another way like DMI-TCAT)
 
-First we need to get a database of relevant tweets.
-The analysis will run on an entire folder, so you could choose to create different folders for different hashtags, depending on your purpose.
-You can track one or multiple hashtags by separating them with commas.
+First we need to get a database of relevant tweets:
+- The analysis will run on an entire folder, so you could choose to create different folders for different hashtags, depending on your purpose.
+- You can track one or multiple hashtags by separating them with commas.
+
+Search for existing tweets:
 ```
-python cli.py --method populate --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
+python cli.py --method populate "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" PATH_TO_SAVING_FOLDER
 ```
 
-To track and store tweets related to a certain hashtag as they are tweeted from now on, run:
+Track tweets related to a certain hashtag as they are tweeted from now on:
 ```
-python cli.py --method track --hashtags "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" --path PATH_TO_SAVING_FOLDER
+python cli.py --method track "#TWITTER_HASHTAG_1,#TWITTER_HASHTAG_2" PATH_TO_SAVING_FOLDER
 ```
 
 **Note that you need to add the hashtag, otherwise you would also retrieve tweets containing the hashtag you chose.**
@@ -130,16 +152,21 @@ Options:
 
 Let's move on to the analysis.
 
-## Analysing Data
+### Analysing Data
 
-### Reading json tweets
+#### Converting raw tweets
 
-If you collected tweets with the above method, your tweets will be JSON formatted.
-Run the following to convert them into multiple tables (users, tweets, mentions, retweets, hashtags) in csv format.
+This steps convert raw tweets collected with the above method into multiple tables (users, tweets, mentions, retweets, hashtags) in `csv` format:
+```
+python cli.py read IMPORT_FOLDER EXPORT_FOLDER
+```
+
+Example:
+```
+python cli.py read data/glyphosate data/glyphosate/CSV
 
 ```
-python cli.py read data/yellowvest_import data/yellowvest_export
-```
+
 You can get the help with the following command:
 ```
 python cli.py read --help
@@ -155,14 +182,13 @@ Options:
   --help  Show this message and exit.
 ```
 
-### Getting statistics from data
+#### Getting statistics from data
 
-Given `TWEET_FOLDER` being the path to the folder which contains CSV files outputted
-from the previous section, a general request will typically look like:
+Given `TWEET_CSV_FOLDER` being the path to the folder which contains CSV files outputted
+from the previous section:
 
-```
-python cli.py stats TWEET_FOLDER --infos rt_users
-```
+**Genral statistics:**
+
 The following requests are available:
 
 * `rt_users`: informations about users who were most retweeted
@@ -170,13 +196,23 @@ The following requests are available:
 * `gen_stats`: general statistics table
 * `top_hashtags`: hashtags occurence table
 
+```
+python cli.py stats TWEET_CSV_FOLDER --infos rt_users
+```
+
+Example:
+```
+python cli.py stats data/glyphosate/CSV --infos rt_users
+
+```
+
 You can get the help with the following command:
 ```
 python cli.py stats --help
 ```
 Which yields:
 ```
-Usage: cli.py stats [OPTIONS] TWEET_FOLDER
+Usage: cli.py stats [OPTIONS] TWEET_CSV_FOLDER
 
   Compute statistics on already saved data
 
@@ -186,19 +222,21 @@ Options:
   --help                          Show this message and exit.
 ```
 
-There is also a more specific query available which looks like:
 
-```
-python cli.py query CSV_FOLDER INPUT_TO_SEARCH --option OPTION_TO_CHOOSE
-```
+**Specific queries:**
 
-Available requests are:
+Available options are:
 * `tweet_by`: get all tweets tweeted by 'input'
 * `related_hash_by`: get all hashtags related to hashtag 'input'
 
+
+```
+python cli.py query --option QUERY_OPTION TWEET_CSV_FOLDER INPUT_TO_SEARCH
+```
+
 You can get the help with the following command:
 ```
-python cli.py stats --help
+python cli.py query --help
 ```
 Which yields:
 ```
@@ -210,14 +248,4 @@ Options:
   --option [get_tweet_by|get_related_hash_by]
                                   Type of statistics to compute
   --help                          Show this message and exit.
-```
-
-### Graph Analysis (under construction)
-
-## Graphical interface
-
-To start the graphical interface, run the following command:
-
-```
-pipenv run python main.py
 ```
